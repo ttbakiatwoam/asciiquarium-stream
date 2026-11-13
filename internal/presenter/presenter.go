@@ -1,5 +1,5 @@
 // Package presenter controls a Blackmagic Web Presenter's livestream over
-// its REST API, e.g. http://172.17.3.29/control/api/v1/livestreams/0.
+// its REST API, e.g. http://192.168.1.50/control/api/v1/livestreams/0.
 //
 // The old StreamMusic cron script restarted the Twitch stream whenever it
 // (re)started the music, so the encoder picks up the new audio cleanly. The

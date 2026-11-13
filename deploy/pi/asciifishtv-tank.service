@@ -20,7 +20,7 @@ Restart=always
 RestartSec=2
 # Runs as an unprivileged user that can draw on the screen and play audio.
 # Change User= to your Pi's account.
-User=attwoam
+User=YOUR_USER
 SupplementaryGroups=video audio tty
 # Lets the tank switch tty1 into graphics mode (hides the console cursor).
 AmbientCapabilities=CAP_SYS_TTY_CONFIG

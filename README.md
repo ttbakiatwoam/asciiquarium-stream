@@ -54,7 +54,7 @@ cron job (`~/StreamMusic`) keeps mplayer looping the songs. To switch to the tan
 1. In `~/.bashrc`, delete the `asciiquarium` line (or, to keep the Perl version as a fallback,
    change it to `[ "$(tty)" = /dev/tty1 ] && asciiquarium` so SSH logins stop starting extra
    copies).
-2. Remove the `* * * * * ... /home/attwoam/StreamMusic` line from `crontab -e` and stop the
+2. Remove the `* * * * * ... ~/StreamMusic` line from `crontab -e` and stop the
    running mplayer, since the tank plays the music itself. (Otherwise cron restarts mplayer
    every minute and the music plays twice.) The script's other job, restarting the Twitch Web
    Presenter stream when the music starts, is done by the tank (`TANK_PRESENTER_URL`), and

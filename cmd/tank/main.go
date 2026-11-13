@@ -144,7 +144,7 @@ func parseFlags() options {
 	flag.StringVar(&o.twitch.SenderID, "twitch-sender-id", env("twitch-sender-id", ""), "user id of the account that posts (needs the user:write:chat scope)")
 	flag.StringVar(&o.twitch.RefreshToken, "twitch-refresh-token", env("twitch-refresh-token", ""), "OAuth refresh token for the posting account (also TANK_TWITCH_REFRESH_TOKEN)")
 	flag.StringVar(&o.twitch.TokenFile, "twitch-token-file", env("twitch-token-file", ""), "file that keeps the latest refresh token across restarts")
-	flag.StringVar(&o.presenterURL, "presenter-url", env("presenter-url", ""), "Blackmagic Web Presenter livestream URL to restart once the music starts, e.g. http://172.17.3.29/control/api/v1/livestreams/0 (empty disables)")
+	flag.StringVar(&o.presenterURL, "presenter-url", env("presenter-url", ""), "Blackmagic Web Presenter livestream URL to restart once the music starts, e.g. http://192.168.1.50/control/api/v1/livestreams/0 (empty disables)")
 	flag.DurationVar(&o.presenterWait, "presenter-wait", envDur("presenter-wait", 30*time.Second), "pause between stopping and starting the Web Presenter stream")
 	flag.StringVar(&o.castleFlag, "castle-flag", env("castle-flag", def.CastleFlag), "text on the castle's flag (empty for the plain flag)")
 	flag.Parse()
