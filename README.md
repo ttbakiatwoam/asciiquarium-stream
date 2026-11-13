@@ -46,6 +46,19 @@ Presenter, which streams to Twitch.
    Add `hdmi_force_hotplug=1` to `/boot/firmware/config.txt` so the HDMI output stays on even if
    the converter is switched off at boot.
 
+### Switching over from the Perl setup
+
+Today the Pi autologins on tty1 and the last line of `~/.bashrc` runs `asciiquarium`, while a
+separate mplayer plays the music. To switch to the tank:
+
+1. In `~/.bashrc`, delete the `asciiquarium` line (or, to keep the Perl version as a fallback,
+   change it to `[ "$(tty)" = /dev/tty1 ] && asciiquarium` so SSH logins stop starting extra
+   copies).
+2. Stop whatever starts mplayer, since the tank plays the music itself.
+3. Install and start the service as above. The unit takes over tty1 (`Conflicts=getty@tty1`).
+
+To go back, `sudo systemctl disable --now asciifishtv-tank` and restore the `.bashrc` line.
+
 There is also a multi-arch container image (`ghcr.io/ttbakiatwoam/asciifishtv-tank`). See the
 [Dockerfile](Dockerfile) for the devices it needs.
 
