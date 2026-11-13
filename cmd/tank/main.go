@@ -56,6 +56,7 @@ type options struct {
 	maxCreatures  int
 	castleFlag    string
 
+	songSuffix    string
 	presenterURL  string
 	presenterWait time.Duration
 }
@@ -124,6 +125,7 @@ func parseFlags() options {
 	flag.IntVar(&o.maxViewerFish, "max-viewer-fish", envInt("max-viewer-fish", def.MaxViewerFish), "most viewer fish in the tank at once")
 	flag.DurationVar(&o.fishLifetime, "fish-lifetime", envDur("fish-lifetime", def.ViewerFishLifetime), "how long a viewer fish stays")
 	flag.IntVar(&o.maxCreatures, "max-creatures", envInt("max-creatures", def.MaxExtraCreatures), "most on-demand creatures on screen at once")
+	flag.StringVar(&o.songSuffix, "song-suffix", env("song-suffix", ""), `text added after the song title, e.g. "buy it at soundcloud.com/asciifishtv"`)
 	flag.StringVar(&o.presenterURL, "presenter-url", env("presenter-url", ""), "Blackmagic Web Presenter livestream URL to restart once the music starts, e.g. http://172.17.3.29/control/api/v1/livestreams/0 (empty disables)")
 	flag.DurationVar(&o.presenterWait, "presenter-wait", envDur("presenter-wait", 30*time.Second), "pause between stopping and starting the Web Presenter stream")
 	flag.StringVar(&o.castleFlag, "castle-flag", env("castle-flag", def.CastleFlag), "text on the castle's flag (empty for the plain flag)")
@@ -255,7 +257,7 @@ func run(o options, log *slog.Logger) error {
 			Log:     log,
 			OnTrack: func(t music.Track) {
 				go exec(func(q *aquarium.Aquarium) {
-					q.ShowBanner("Now playing: "+t.Display(), o.songSeconds, aquarium.BannerTicker)
+					q.ShowBanner(songLine(t, o.songSuffix), o.songSeconds, aquarium.BannerTicker)
 				})
 			},
 		}
@@ -290,7 +292,7 @@ func run(o options, log *slog.Logger) error {
 					case <-tk.C:
 						if t, ok := player.NowPlaying(); ok && time.Since(t.Started) > o.songSeconds {
 							exec(func(q *aquarium.Aquarium) {
-								q.ShowBanner("Now playing: "+t.Display(), o.songSeconds, aquarium.BannerTicker)
+								q.ShowBanner(songLine(t, o.songSuffix), o.songSeconds, aquarium.BannerTicker)
 							})
 						}
 					}
@@ -404,4 +406,13 @@ func snapshot(o options, cfg aquarium.Config) error {
 	}
 	defer f.Close()
 	return png.Encode(f, c.Image())
+}
+
+// songLine is the ticker text for a track.
+func songLine(t music.Track, suffix string) string {
+	line := "Now playing: " + t.Display()
+	if suffix != "" {
+		line += "  |  " + suffix
+	}
+	return line
 }
