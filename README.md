@@ -49,12 +49,15 @@ Presenter, which streams to Twitch.
 ### Switching over from the Perl setup
 
 Today the Pi autologins on tty1 and the last line of `~/.bashrc` runs `asciiquarium`, while a
-separate mplayer plays the music. To switch to the tank:
+cron job (`~/StreamMusic`) keeps mplayer looping the songs. To switch to the tank:
 
 1. In `~/.bashrc`, delete the `asciiquarium` line (or, to keep the Perl version as a fallback,
    change it to `[ "$(tty)" = /dev/tty1 ] && asciiquarium` so SSH logins stop starting extra
    copies).
-2. Stop whatever starts mplayer, since the tank plays the music itself.
+2. Remove the `* * * * * ... /home/attwoam/StreamMusic` line from `crontab -e` and stop the
+   running mplayer, since the tank plays the music itself. (Otherwise cron restarts mplayer
+   every minute and the music plays twice.) The daily reboot and the Web Presenter start/stop
+   lines can stay: the service starts again by itself after the reboot.
 3. Install and start the service as above. The unit takes over tty1 (`Conflicts=getty@tty1`).
 
 To go back, `sudo systemctl disable --now asciifishtv-tank` and restore the `.bashrc` line.
@@ -123,7 +126,8 @@ next.
 
 1. **Tank** (this): Go port, HDMI/headless output, command API, music titles. ✅
 2. **Bridge** (runs in Kubernetes): Twitch EventSub (subs, bits, channel points, chat
-   commands), Streamlabs donations, Buy Me a Coffee webhooks. These map to tank commands with
+   commands), Streamlabs donations, Buy Me a Coffee webhooks, and later YouTube (the stream
+   also goes to YouTube through a second Web Presenter). These map to tank commands with
    per-user freemium quotas, cooldowns and mod commands.
 3. **Fishing game**: a subscriber drops the hook, and whatever it catches counts toward their
    collection. Per-user catch counts by species, leaderboards, and badges shown on stream, in
