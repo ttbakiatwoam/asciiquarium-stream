@@ -18,6 +18,7 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/aquarium"
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/engine"
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/music"
+	"github.com/ttbakiatwoam/asciiquarium-stream/internal/presenter"
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/render"
 )
 
@@ -53,6 +55,9 @@ type options struct {
 	fishLifetime  time.Duration
 	maxCreatures  int
 	castleFlag    string
+
+	presenterURL  string
+	presenterWait time.Duration
 }
 
 // env returns the TANK_<NAME> environment variable or def, so every flag
@@ -119,6 +124,8 @@ func parseFlags() options {
 	flag.IntVar(&o.maxViewerFish, "max-viewer-fish", envInt("max-viewer-fish", def.MaxViewerFish), "most viewer fish in the tank at once")
 	flag.DurationVar(&o.fishLifetime, "fish-lifetime", envDur("fish-lifetime", def.ViewerFishLifetime), "how long a viewer fish stays")
 	flag.IntVar(&o.maxCreatures, "max-creatures", envInt("max-creatures", def.MaxExtraCreatures), "most on-demand creatures on screen at once")
+	flag.StringVar(&o.presenterURL, "presenter-url", env("presenter-url", ""), "Blackmagic Web Presenter livestream URL to restart once the music starts, e.g. http://172.17.3.29/control/api/v1/livestreams/0 (empty disables)")
+	flag.DurationVar(&o.presenterWait, "presenter-wait", envDur("presenter-wait", 30*time.Second), "pause between stopping and starting the Web Presenter stream")
 	flag.StringVar(&o.castleFlag, "castle-flag", env("castle-flag", def.CastleFlag), "text on the castle's flag (empty for the plain flag)")
 	flag.Parse()
 	return o
@@ -251,6 +258,25 @@ func run(o options, log *slog.Logger) error {
 					q.ShowBanner("Now playing: "+t.Display(), o.songSeconds, aquarium.BannerTicker)
 				})
 			},
+		}
+		var once sync.Once
+		onTrack := player.OnTrack
+		player.OnTrack = func(t music.Track) {
+			onTrack(t)
+			if o.presenterURL == "" {
+				return
+			}
+			// like the old StreamMusic script: when the music (re)starts,
+			// bounce the Web Presenter stream so it picks up the audio
+			once.Do(func() {
+				go func() {
+					log.Info("restarting Web Presenter stream", "url", o.presenterURL)
+					c := &presenter.Client{BaseURL: o.presenterURL}
+					if err := c.Restart(ctx, o.presenterWait); err != nil {
+						log.Error("Web Presenter restart failed", "err", err)
+					}
+				}()
+			})
 		}
 		go player.Run(ctx)
 		if o.songEvery > 0 {

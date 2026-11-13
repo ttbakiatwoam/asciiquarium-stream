@@ -56,8 +56,11 @@ cron job (`~/StreamMusic`) keeps mplayer looping the songs. To switch to the tan
    copies).
 2. Remove the `* * * * * ... /home/attwoam/StreamMusic` line from `crontab -e` and stop the
    running mplayer, since the tank plays the music itself. (Otherwise cron restarts mplayer
-   every minute and the music plays twice.) The daily reboot and the Web Presenter start/stop
-   lines can stay: the service starts again by itself after the reboot.
+   every minute and the music plays twice.) The script's other job, restarting the Twitch Web
+   Presenter stream when the music starts, is done by the tank (`TANK_PRESENTER_URL`), and
+   systemd restarts the tank if it ever crashes, replacing the every-minute check. The daily
+   reboot and the Web Presenter start/stop lines can stay: the service starts again by itself
+   after the reboot.
 3. Install and start the service as above. The unit takes over tty1 (`Conflicts=getty@tty1`).
 
 To go back, `sudo systemctl disable --now asciifishtv-tank` and restore the `.bashrc` line.
