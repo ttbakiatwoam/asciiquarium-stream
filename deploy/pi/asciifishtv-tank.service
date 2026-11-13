@@ -14,6 +14,8 @@ Conflicts=getty@tty1.service
 [Service]
 EnvironmentFile=/etc/asciifishtv/tank.env
 ExecStart=/usr/local/bin/tank
+# keeps the rotated Twitch refresh token (TANK_TWITCH_TOKEN_FILE)
+StateDirectory=asciifishtv
 Restart=always
 RestartSec=2
 # Runs as an unprivileged user that can draw on the screen and play audio.

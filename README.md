@@ -89,6 +89,26 @@ tank -output raw -width 1920 -height 1080 -fps 20 \
 
 (Mixing the music into that stream is a later step.)
 
+## Song posts in chat
+
+When a song starts, the tank can post it in Twitch chat with a link to buy it, e.g.
+`Now playing: Galaxy Drift #7 | Get the music: https://soundcloud.com/...`. It posts at most
+once every 3 minutes, so short songs don't flood chat.
+
+1. Register an app at [dev.twitch.tv/console](https://dev.twitch.tv/console) with the redirect
+   URL `http://localhost:3000`. Note its client id and secret.
+2. Get a refresh token for the account that should post (your channel or a bot account) with the
+   `user:write:chat` scope. The [Twitch CLI](https://dev.twitch.tv/docs/cli/) does it in one
+   step: `twitch configure` then `twitch token -u -s user:write:chat`.
+3. Look up the user ids: `twitch api get users -q login=asciifishtv` (and the bot's login if
+   it's different).
+4. Fill in the `TANK_TWITCH_*` and `TANK_SONG_LINK` lines in `tank.env`. For per-song links,
+   point `TANK_SONG_LINKS` at a file of `Galaxy Drift #7 = https://...` lines. Songs not listed
+   use `TANK_SONG_LINK`.
+
+For links that don't depend on the song, a Streamlabs Cloudbot timer and a `!music` command
+work without any of this.
+
 ## Command API
 
 Every request except `/healthz` needs `Authorization: Bearer $TANK_TOKEN`.
@@ -128,10 +148,13 @@ next.
 ## Roadmap
 
 1. **Tank** (this): Go port, HDMI/headless output, command API, music titles. ✅
-2. **Bridge** (runs in Kubernetes): Twitch EventSub (subs, bits, channel points, chat
-   commands), Streamlabs donations, Buy Me a Coffee webhooks, and optionally YouTube later
-   (a second Web Presenter is set aside for it but not in use yet). These map to tank commands with
-   per-user freemium quotas, cooldowns and mod commands.
+2. **Streamlabs first, small bridge for the rest.** Streamlabs handles everything it can:
+   alerts, donation pages, Cloudbot commands and timers, and loyalty points and leaderboards.
+   A small bridge service (in Kubernetes) only connects what Streamlabs can't do by itself:
+   it listens to Streamlabs' event feed (tips, Twitch subs, bits, follows) and turns them into
+   tank actions, handles chat commands that spawn things (with per-user freemium quotas and
+   cooldowns), and takes Buy Me a Coffee webhooks if Streamlabs doesn't cover them. YouTube is
+   optional later (a second Web Presenter is set aside for it but not in use yet).
 3. **Fishing game**: a subscriber drops the hook, and whatever it catches counts toward their
    collection. Per-user catch counts by species, leaderboards, and badges shown on stream, in
    chat (`!catches`) and on a leaderboard page. The tank will send catch events to the bridge,

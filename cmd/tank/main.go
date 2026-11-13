@@ -28,6 +28,7 @@ import (
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/music"
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/presenter"
 	"github.com/ttbakiatwoam/asciiquarium-stream/internal/render"
+	"github.com/ttbakiatwoam/asciiquarium-stream/internal/twitch"
 )
 
 type options struct {
@@ -56,9 +57,15 @@ type options struct {
 	maxCreatures  int
 	castleFlag    string
 
-	songSuffix    string
-	presenterURL  string
-	presenterWait time.Duration
+	songSuffix string
+
+	songChat         string
+	songLink         string
+	songLinks        string
+	songChatInterval time.Duration
+	twitch           *twitch.Chat
+	presenterURL     string
+	presenterWait    time.Duration
 }
 
 // env returns the TANK_<NAME> environment variable or def, so every flag
@@ -126,6 +133,17 @@ func parseFlags() options {
 	flag.DurationVar(&o.fishLifetime, "fish-lifetime", envDur("fish-lifetime", def.ViewerFishLifetime), "how long a viewer fish stays")
 	flag.IntVar(&o.maxCreatures, "max-creatures", envInt("max-creatures", def.MaxExtraCreatures), "most on-demand creatures on screen at once")
 	flag.StringVar(&o.songSuffix, "song-suffix", env("song-suffix", ""), `text added after the song title, e.g. "buy it at soundcloud.com/asciifishtv"`)
+	o.twitch = &twitch.Chat{}
+	flag.StringVar(&o.songChat, "song-chat", env("song-chat", "Now playing: {title} | Get the music: {link}"), "Twitch chat message posted when a song starts ({title}, {link})")
+	flag.StringVar(&o.songLink, "song-link", env("song-link", ""), "link used for {link}, e.g. the SoundCloud page")
+	flag.StringVar(&o.songLinks, "song-links", env("song-links", ""), `file of per-song links, one "song name = url" per line (falls back to -song-link)`)
+	flag.DurationVar(&o.songChatInterval, "song-chat-min-interval", envDur("song-chat-min-interval", 3*time.Minute), "least time between song posts in chat")
+	flag.StringVar(&o.twitch.ClientID, "twitch-client-id", env("twitch-client-id", ""), "Twitch app client id (song chat posts are off unless set)")
+	flag.StringVar(&o.twitch.ClientSecret, "twitch-client-secret", env("twitch-client-secret", ""), "Twitch app client secret (also TANK_TWITCH_CLIENT_SECRET)")
+	flag.StringVar(&o.twitch.BroadcasterID, "twitch-broadcaster-id", env("twitch-broadcaster-id", ""), "user id of the channel")
+	flag.StringVar(&o.twitch.SenderID, "twitch-sender-id", env("twitch-sender-id", ""), "user id of the account that posts (needs the user:write:chat scope)")
+	flag.StringVar(&o.twitch.RefreshToken, "twitch-refresh-token", env("twitch-refresh-token", ""), "OAuth refresh token for the posting account (also TANK_TWITCH_REFRESH_TOKEN)")
+	flag.StringVar(&o.twitch.TokenFile, "twitch-token-file", env("twitch-token-file", ""), "file that keeps the latest refresh token across restarts")
 	flag.StringVar(&o.presenterURL, "presenter-url", env("presenter-url", ""), "Blackmagic Web Presenter livestream URL to restart once the music starts, e.g. http://172.17.3.29/control/api/v1/livestreams/0 (empty disables)")
 	flag.DurationVar(&o.presenterWait, "presenter-wait", envDur("presenter-wait", 30*time.Second), "pause between stopping and starting the Web Presenter stream")
 	flag.StringVar(&o.castleFlag, "castle-flag", env("castle-flag", def.CastleFlag), "text on the castle's flag (empty for the plain flag)")
@@ -260,6 +278,20 @@ func run(o options, log *slog.Logger) error {
 					q.ShowBanner(songLine(t, o.songSuffix), o.songSeconds, aquarium.BannerTicker)
 				})
 			},
+		}
+		if o.twitch.ClientID != "" {
+			links, err := loadLinks(o.songLinks)
+			if err != nil {
+				return fmt.Errorf("song links: %w", err)
+			}
+			o.twitch.LoadToken()
+			sc := &songChat{chat: o.twitch, template: o.songChat, defaultLink: o.songLink, links: links, minInterval: o.songChatInterval, log: log}
+			show := player.OnTrack
+			player.OnTrack = func(t music.Track) {
+				show(t)
+				go sc.announce(ctx, t)
+			}
+			log.Info("song changes will be posted in Twitch chat")
 		}
 		var once sync.Once
 		onTrack := player.OnTrack
