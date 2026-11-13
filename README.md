@@ -31,7 +31,7 @@ so the tank looks just like it always has.
 The live setup is a Pi 4 sending 1080p over HDMI to an SDI converter and a Blackmagic Web
 Presenter, which streams to Twitch.
 
-1. Download `tank-linux-arm64` (64-bit Raspberry Pi OS) or `tank-linux-armv7` (32-bit) from the
+1. Download `tank-linux-arm64` (the Pi runs 64-bit Raspberry Pi OS; `tank-linux-armv7` is for 32-bit) from the
    CI artifacts, or build it: `GOOS=linux GOARCH=arm64 go build -o tank ./cmd/tank`.
 2. Install it with the systemd unit in [deploy/pi](deploy/pi):
    ```sh
@@ -39,7 +39,6 @@ Presenter, which streams to Twitch.
    sudo mkdir -p /etc/asciifishtv
    sudo install -m 600 deploy/pi/tank.env.example /etc/asciifishtv/tank.env   # edit: token, music folder, audio device
    sudo install -m 644 deploy/pi/asciifishtv-tank.service /etc/systemd/system/
-   sudo apt install mpg123
    sudo systemctl daemon-reload && sudo systemctl enable --now asciifishtv-tank
    ```
 3. Raspberry Pi OS Lite is enough. On the desktop version, stop the desktop on the HDMI output
