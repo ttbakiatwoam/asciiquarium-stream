@@ -126,8 +126,8 @@ next.
 
 1. **Tank** (this): Go port, HDMI/headless output, command API, music titles. ✅
 2. **Bridge** (runs in Kubernetes): Twitch EventSub (subs, bits, channel points, chat
-   commands), Streamlabs donations, Buy Me a Coffee webhooks, and later YouTube (the stream
-   also goes to YouTube through a second Web Presenter). These map to tank commands with
+   commands), Streamlabs donations, Buy Me a Coffee webhooks, and optionally YouTube later
+   (a second Web Presenter is set aside for it but not in use yet). These map to tank commands with
    per-user freemium quotas, cooldowns and mod commands.
 3. **Fishing game**: a subscriber drops the hook, and whatever it catches counts toward their
    collection. Per-user catch counts by species, leaderboards, and badges shown on stream, in
