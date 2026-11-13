@@ -113,8 +113,12 @@ next.
 2. **Bridge** (runs in Kubernetes): Twitch EventSub (subs, bits, channel points, chat
    commands), Streamlabs donations, Buy Me a Coffee webhooks. These map to tank commands with
    per-user freemium quotas, cooldowns and mod commands.
-3. **Discord/Slack** commands for linked subscribers, using the same quotas.
-4. Remember viewer fish across restarts, new creatures, and direct-to-Twitch streaming with
+3. **Fishing game**: a subscriber drops the hook, and whatever it catches counts toward their
+   collection. Per-user catch counts by species, leaderboards, and badges shown on stream, in
+   chat (`!catches`) and on a leaderboard page. The tank will send catch events to the bridge,
+   which stores them. (Twitch doesn't let channels give custom chat badges to individual users.)
+4. **Discord/Slack** commands for linked subscribers, using the same quotas.
+5. Remember viewer fish across restarts, new creatures, and direct-to-Twitch streaming with
    audio.
 
 ## Development
