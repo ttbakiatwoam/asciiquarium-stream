@@ -55,6 +55,9 @@ func (q *Aquarium) addEnvironment() {
 func (q *Aquarium) addCastle() {
 	a := q.anim
 	ae := art.get("castle", 0, 0)
+	if flag := SanitizeText(q.cfg.CastleFlag, 24); flag != "" {
+		ae = withCastleFlag(ae, flag)
+	}
 	a.Add(&engine.Entity{
 		Type:       "castle",
 		Frames:     ae.sprites(true, engine.White),
@@ -63,6 +66,19 @@ func (q *Aquarium) addCastle() {
 		Z:          depthCastle,
 		FrameSpeed: 0.1,
 	})
+}
+
+// withCastleFlag writes text on the castle's flag ("T~~" becomes
+// "T~ASCIIFISH.TV~"), with green waves and bright white letters.
+func withCastleFlag(ae artEntity, flag string) artEntity {
+	out := artEntity{DefaultColor: ae.DefaultColor}
+	for _, sh := range ae.Shape {
+		out.Shape = append(out.Shape, strings.Replace(sh, "T~~", "T~"+flag+"~", 1))
+	}
+	for _, m := range ae.Color {
+		out.Color = append(out.Color, strings.Replace(m, "GG", "G"+strings.Repeat("W", len(flag))+"G", 1))
+	}
+	return out
 }
 
 func (q *Aquarium) addAllSeaweed() {

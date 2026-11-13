@@ -29,6 +29,9 @@ type Config struct {
 	MaxNameLen int
 	// MaxBannerLen limits banner text.
 	MaxBannerLen int
+	// CastleFlag is written on the castle's flag. Empty keeps the
+	// original plain flag.
+	CastleFlag string
 }
 
 // DefaultConfig returns sensible defaults.
@@ -40,6 +43,7 @@ func DefaultConfig() Config {
 		MaxExtraCreatures:  3,
 		MaxNameLen:         20,
 		MaxBannerLen:       100,
+		CastleFlag:         "ASCIIFISH.TV",
 	}
 }
 

@@ -52,6 +52,7 @@ type options struct {
 	maxViewerFish int
 	fishLifetime  time.Duration
 	maxCreatures  int
+	castleFlag    string
 }
 
 // env returns the TANK_<NAME> environment variable or def, so every flag
@@ -118,6 +119,7 @@ func parseFlags() options {
 	flag.IntVar(&o.maxViewerFish, "max-viewer-fish", envInt("max-viewer-fish", def.MaxViewerFish), "most viewer fish in the tank at once")
 	flag.DurationVar(&o.fishLifetime, "fish-lifetime", envDur("fish-lifetime", def.ViewerFishLifetime), "how long a viewer fish stays")
 	flag.IntVar(&o.maxCreatures, "max-creatures", envInt("max-creatures", def.MaxExtraCreatures), "most on-demand creatures on screen at once")
+	flag.StringVar(&o.castleFlag, "castle-flag", env("castle-flag", def.CastleFlag), "text on the castle's flag (empty for the plain flag)")
 	flag.Parse()
 	return o
 }
@@ -165,6 +167,7 @@ func run(o options, log *slog.Logger) error {
 	cfg.MaxViewerFish = o.maxViewerFish
 	cfg.ViewerFishLifetime = o.fishLifetime
 	cfg.MaxExtraCreatures = o.maxCreatures
+	cfg.CastleFlag = o.castleFlag
 
 	if o.output == "png" {
 		return snapshot(o, cfg)

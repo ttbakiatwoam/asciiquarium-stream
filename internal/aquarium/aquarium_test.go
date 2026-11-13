@@ -34,6 +34,9 @@ func TestSceneRendersAndRuns(t *testing.T) {
 	if !strings.Contains(s, "~~~~~~~~") {
 		t.Fatalf("water line missing:\n%s", s)
 	}
+	if !strings.Contains(s, "T~ASCIIFISH.TV~") {
+		t.Fatalf("castle flag missing:\n%s", s)
+	}
 	if !strings.Contains(s, "[ ]_[ ]_[ ]") {
 		t.Fatalf("castle missing:\n%s", s)
 	}
