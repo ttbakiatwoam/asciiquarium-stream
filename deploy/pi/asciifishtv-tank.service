@@ -1,0 +1,28 @@
+# systemd unit for running the tank directly on the Raspberry Pi.
+#
+#   sudo install -m 755 tank /usr/local/bin/tank
+#   sudo install -m 644 deploy/pi/asciifishtv-tank.service /etc/systemd/system/
+#   sudo install -m 600 deploy/pi/tank.env.example /etc/asciifishtv/tank.env   # then edit it
+#   sudo systemctl daemon-reload && sudo systemctl enable --now asciifishtv-tank
+[Unit]
+Description=asciifishtv interactive aquarium
+After=network-online.target sound.target
+Wants=network-online.target
+# Keep the login prompt off the HDMI output.
+Conflicts=getty@tty1.service
+
+[Service]
+EnvironmentFile=/etc/asciifishtv/tank.env
+ExecStart=/usr/local/bin/tank
+Restart=always
+RestartSec=2
+# Runs as an unprivileged user that can draw on the screen and play audio.
+# Change User= if your Pi's account isn't called "pi".
+User=pi
+SupplementaryGroups=video audio tty
+# Lets the tank switch tty1 into graphics mode (hides the console cursor).
+AmbientCapabilities=CAP_SYS_TTY_CONFIG
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target
